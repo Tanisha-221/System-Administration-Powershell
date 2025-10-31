@@ -1,18 +1,24 @@
+# Import modules if needed
+Import-Module Microsoft.PowerShell.SecretManagement
+Import-Module Microsoft.PowerShell.SecretStore
+
+# Retrieve stored credential
+$Vm1Cred = Get-Secret -Name "Vm1Cred"
+
+# Enable remoting and allow trusted hosts
 Set-Item WSMan:\localhost\Client\TrustedHosts -Value "*" -Force
+Restart-Service WinRM -Force
 
-Restart-Service WinRM
+# Create a remote session using stored credential
+$session = New-PSSession -ComputerName Vm1 -Credential $Vm1Cred
 
-New-PSSession -ComputerName Vm1 -Credential (Get-Credential)
+# Generate dynamic zip filename (matches your earlier report script)
+$remoteZipFile = "C:\AllReports*.zip"
 
-$session = New-PSSession -ComputerName Vm1 -Credential (Get-Credential)
+# Copy the file from remote VM to local monitoring VM
+Copy-Item -FromSession $session -Path $remoteZipFile -Destination "C:\" -Recurse -Force -Verbose
 
-# Define source and destination
-$remotePath = "C:\Assignment_1\*"    # all files and folders inside Assignment_1
-$localPath  = "C:\report\Vm1_Assignment_1"  # include VM name to avoid conflicts
+# Clean up session
+Remove-PSSession $session
 
-# Make sure local folder exists
-if (-not (Test-Path $localPath)) {
-    New-Item -Path $localPath -ItemType Directory | Out-Null
-}
-
-Copy-Item -FromSession $session -Path "C:\Assignment_1" -Destination "C:\report" -Recurse -Force -Verbose
+Write-Host "File copied successfully from VM1 to monitoring VM.
