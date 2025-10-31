@@ -1,0 +1,38 @@
+name: PowerShell CI/CD
+ 
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+ 
+jobs:
+  run-powershell:
+    runs-on: windows-latest  # Can also use ubuntu-latest for cross-platform PowerShell Core
+    steps:
+      # Step 1: Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+ 
+      # Step 2: Setup PowerShell (Core)
+      - name: Setup PowerShell
+        uses: actions/setup-powershell@v2
+ 
+      # Step 3: Run PowerShell script
+      - name: Execute script
+        shell: pwsh
+        run: |
+          try {
+            ./scripts/myscript.ps1 -Param1 "Value" -Verbose
+          } catch {
+            Write-Error "Script failed: $_"
+            exit 1
+          }
+ 
+      # Step 4: Upload artifacts (optional)
+      - name: Upload output
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: script-output
+          path: output/
