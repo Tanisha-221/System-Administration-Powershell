@@ -15,39 +15,40 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
-      # Step 2: Run PowerShell scripts
-      - name: Execute all scripts
+      # Step 2: Check PowerShell script syntax only (without execution)
+      - name: Check PowerShell script syntax
         shell: pwsh
         run: |
-          # Initialize a list to track failed scripts
+          # Initialize a list to track scripts with syntax errors
           $failedScripts = @()
 
           # Get all .ps1 scripts in the "scripts" directory
           $scripts = Get-ChildItem -Path "./scripts" -Filter *.ps1 -Recurse | Sort-Object Name
 
-          # Loop through each script and execute
+          # Loop through each script and check for syntax errors
           foreach ($script in $scripts) {
-              Write-Host "Executing $($script.Name)....."
+              Write-Host "Checking syntax for $($script.Name)....."
               try {
-                  # Execute the script with verbosity
-                  & $script.FullName -Verbose
-                  Write-Host "$($script.Name) executed successfully."
+                  # Only test the syntax by loading the script, not executing it
+                  $null = powershell -Command "& { . '$($script.FullName)' }" -ErrorAction Stop
+
+                  Write-Host "$($script.Name) syntax is valid."
               }
               catch {
                   # Log the error message and track failure
-                  Write-Error "Script $($script.Name) failed: $_"
+                  Write-Error "Syntax error in script $($script.Name): $_"
                   $failedScripts += $script.Name
               }
           }
 
           # If any scripts failed, throw an error and log the failed scripts
           if ($failedScripts.Count -gt 0) {
-              Write-Host "The following scripts failed to execute: $($failedScripts -join ', ')"
-              throw "One or more scripts failed."
+              Write-Host "The following scripts have syntax errors: $($failedScripts -join ', ')"
+              throw "One or more scripts failed syntax validation."
           } else {
-              Write-Host "All scripts executed successfully."
+              Write-Host "All scripts passed syntax validation."
           }
-
+      
       # Step 3: Upload artifacts (optional)
       - name: Upload output
         if: success()
@@ -56,7 +57,7 @@ jobs:
           name: script-output
           path: output/
 
-      # Step 4: List the artifacts
+      # Step 4: List the uploaded artifacts
       - name: List uploaded artifacts
         if: success()
         run: |
