@@ -1,10 +1,10 @@
 name: PowerShell CI/CD
- 
+
 on:
   push:
     branches:
       - main
- 
+
 jobs:
   run-powershell:
     runs-on: windows-latest  
@@ -14,27 +14,41 @@ jobs:
       # Step 1: Checkout repository
       - name: Checkout code
         uses: actions/checkout@v4
- 
-      # Step 3: Run PowerShell scripts
+        
+      # Step 2: Run PowerShell scripts
       - name: Execute all scripts
         shell: pwsh
         run: |
-          $scripts = Get-ChildItem -Path "./scripts" -Filter *.ps1 -Recurse | Sort-Object name
+          # Initialize a list to track failed scripts
+          $failedScripts = @()
 
-          foreach ($scripts in $scripts) {
-              Write-Host "Executing $($scripts.Name)....."
-              try{
-                 & $scripts.FullName -Verbose
-                 Write-Host "$($scripts.Name) executed successfully."
-                } catch {
-                  Write-Error "Script $($scripts.Name) failed: $_"}
-                  exit 1
+          # Get all .ps1 scripts in the "scripts" directory
+          $scripts = Get-ChildItem -Path "./scripts" -Filter *.ps1 -Recurse | Sort-Object Name
+
+          # Loop through each script and execute
+          foreach ($script in $scripts) {
+              Write-Host "Executing $($script.Name)....."
+              try {
+                  # Execute the script with verbosity
+                  & $script.FullName -Verbose
+                  Write-Host "$($script.Name) executed successfully."
+              }
+              catch {
+                  # Log the error message and track failure
+                  Write-Error "Script $($script.Name) failed: $_"
+                  $failedScripts += $script.Name
               }
           }
 
-          Write-Host "All scripts executed successfully."
+          # If any scripts failed, throw an error and log the failed scripts
+          if ($failedScripts.Count -gt 0) {
+              Write-Host "The following scripts failed to execute: $($failedScripts -join ', ')"
+              throw "One or more scripts failed."
+          } else {
+              Write-Host "All scripts executed successfully."
+          }
 
-      # Step 4: Upload artifacts (optional)
+      # Step 3: Upload artifacts (optional)
       - name: Upload output
         if: success()
         uses: actions/upload-artifact@v4
@@ -42,7 +56,7 @@ jobs:
           name: script-output
           path: output/
 
-      # Step 5: List the artifacts
+      # Step 4: List the artifacts
       - name: List uploaded artifacts
         if: success()
         run: |
