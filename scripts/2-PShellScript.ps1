@@ -109,3 +109,7 @@ if (Test-Path $folder) {
 # --------- Script End Time ------------
 $endTime = Get-Date
 Write-Host "Script completed at $endTime"
+
+# ---------- Clean Up --------------
+Remove-Item -Path $folder -Recurse -Force
+Write-Host "Temporary folder $folder has been removed."
