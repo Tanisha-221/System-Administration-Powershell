@@ -1,0 +1,54 @@
+name: PowerShell CI/CD
+ 
+on:
+  push:
+    branches:
+      - main
+ 
+jobs:
+  run-powershell:
+    runs-on: windows-latest  
+    environment: Production
+
+    steps:
+      # Step 1: Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+ 
+      # Step 2: Setup PowerShell (Core)
+      - name: Setup PowerShell
+        uses: actions/setup-powershell@v2
+ 
+      # Step 3: Run PowerShell scripts
+      - name: Execute all scripts
+        shell: pwsh
+        run: |
+          $scripts = Get-ChildItem -Path "./scripts" -Filter *.ps1 -Recurse | Sort-Object name
+
+          foreach ($scripts in $scripts) {
+              Write-Host "Executing $($scripts.Name)....."
+              try{
+                 & $scripts.FullName -Verbose
+                 Write-Host "$($scripts.Name) executed successfully."
+                } catch {
+                  Write-Error "Script $($scripts.Name) failed: $_"}
+                  exit 1
+              }
+          }
+
+          Write-Host "All scripts executed successfully."
+
+      # Step 4: Upload artifacts (optional)
+      - name: Upload output
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: script-output
+          path: output/
+
+      # Step 5: List the artifacts
+      - name: List uploaded artifacts
+        if: success()
+        run: |
+          echo "Uploaded Artifacts:"
+          ls output/
