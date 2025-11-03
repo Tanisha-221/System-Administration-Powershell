@@ -81,7 +81,7 @@ try {
     Get-WinEvent -LogName Security | 
         Where-Object { $_.LevelDisplayName -eq "Failure Audit" } |
         Select-Object TimeCreated, Id, LevelDisplayName, Message |
-        Out-File -FilePath $securityFile -Force
+        Out-File -FilePath $securityFile 
 
     Write-Host " Failed security events saved to $securityFile"
 }
