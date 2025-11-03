@@ -14,11 +14,6 @@ jobs:
       # Step 1: Checkout repository
       - name: Checkout code
         uses: actions/checkout@v4
-     
-      - name: Set up Powershell 
-        uses: powershell/setup-powershell@v2
-        with:
-          version: '7.2.0' # Specify the PowerShell version
       
       - name: Check file paths
         run: |
