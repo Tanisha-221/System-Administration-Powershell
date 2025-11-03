@@ -42,6 +42,7 @@ Get-Disk | Out-File -FilePath "$folder\DiskInfo.txt" -Append
 $failedServices = @()
 
         foreach ($service in Get-Service | Where-Object { $_.StartType -ne 'Disabled' }) {
+            Write-Output ("ForEach started at" + (Get-Date))
             $retryCount = 0
             $maxRetries = 3
             $serviceStarted = $false
@@ -64,13 +65,13 @@ $failedServices = @()
                 $failedServices += $service.Name
                 Write-Output "Escalation: Service '$($service.Name)' failed to start after $maxRetries attempts."
             }
+            Write-Output ("ForEach ended at" + (Get-Date))
         }
 
         if ($failedServices.Count -gt 0) {
             $failedServices | Out-File -FilePath "$folder\failed-services.txt"
             Write-Output "Escalation completed. Failed services are logged in '$folder\failed-services.txt'."
-        }
-        else {
+        }else{
             Write-Output "All services started successfully or already running."
         }
 
@@ -95,6 +96,7 @@ $zipFile = "C:\AllReports_${hostName}_$(Get-Date -Format 'yyyyMMdd_HHmm').zip"
 
 # Check if folder has any files before compressing
 if (Test-Path $folder) {
+    Write-Output "Checking if the file exists"
     $items = Get-ChildItem -Path $folder -Recurse -File -Exclude *.zip
     if ($items.Count -gt 0) {
         Compress-Archive -Path $folder\* -DestinationPath $zipFile -Force
