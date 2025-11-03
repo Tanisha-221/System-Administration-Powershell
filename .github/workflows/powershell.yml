@@ -14,7 +14,22 @@ jobs:
       # Step 1: Checkout repository
       - name: Checkout code
         uses: actions/checkout@v4
-      # Step 2: Check PowerShell script syntax only (without execution)
+     
+      - name: Set up Powershell 
+        uses: actions/setup-powershell@v1
+        with:
+          version: '7.2.0' # Specify the PowerShell version
+      
+      - name: Check file paths
+        run: |
+          $filePath = "./scripts/2-PShellScript.ps1"
+          if (-Not (Test-Path $filePath)) {
+            Write-Error "File not found: $filePath"
+            exit 1
+          } else {
+            Write-Host "File exists: $filePath"
+          }
+
       - name: Check PowerShell script
         shell: pwsh
         run: |
@@ -32,11 +47,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: script-output
-          path: output/
+          path: .
 
       # Step 4: List the uploaded artifacts
       - name: List uploaded artifacts
         if: success()
         run: |
           echo "Uploaded Artifacts:"
-          ls output/
+          ls .
