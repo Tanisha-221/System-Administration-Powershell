@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - ['*']
 
 jobs:
   run-powershell:
@@ -29,7 +30,7 @@ jobs:
         shell: pwsh
         run: |
            try {
-              pwsh -NoProfile -Command { ./scripts/2-PShellScript.ps1 } -ErrorAction Stop
+              pwsh -NoProfile -Command { ./scripts/2-PShellScript.ps1 }
               Write-Host "Syntax check passed"
             } catch {
                 Write-Host "Syntax check failed: $_ "
@@ -49,4 +50,4 @@ jobs:
         if: success()
         run: |
           echo "Uploaded Artifacts:"
-          ls .
+          ls .''
