@@ -19,7 +19,7 @@ jobs:
         shell: pwsh
         run: |
            try {
-              ./scripts/2-PShellScript.ps1 -SyntaxCheck
+              pwsh -NoProfile -Command { ./script/2-PShellScript.ps1 }
               Write-Host "Syntax check passed"
             } catch {
                 Write-Host "Syntax check failed: $_ "
