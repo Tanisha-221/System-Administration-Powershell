@@ -14,40 +14,16 @@ jobs:
       # Step 1: Checkout repository
       - name: Checkout code
         uses: actions/checkout@v4
-        
       # Step 2: Check PowerShell script syntax only (without execution)
-      - name: Check PowerShell script syntax
+      - name: Check PowerShell script
         shell: pwsh
         run: |
-          # Initialize a list to track scripts with syntax errors
-          $failedScripts = @()
-
-          # Get all .ps1 scripts in the "scripts" directory
-          $scripts = Get-ChildItem -Path "./scripts" -Filter *.ps1 -Recurse | Sort-Object Name
-
-          # Loop through each script and check for syntax errors
-          foreach ($script in $scripts) {
-              Write-Host "Checking syntax for $($script.Name)....."
-              try {
-                  # Only test the syntax by loading the script, not executing it
-                  $null = powershell -Command "& { . '$($script.FullName)' }" -ErrorAction Stop
-
-                  Write-Host "$($script.Name) syntax is valid."
-              }
-              catch {
-                  # Log the error message and track failure
-                  Write-Error "Syntax error in script $($script.Name): $_"
-                  $failedScripts += $script.Name
-              }
-          }
-
-          # If any scripts failed, throw an error and log the failed scripts
-          if ($failedScripts.Count -gt 0) {
-              Write-Host "The following scripts have syntax errors: $($failedScripts -join ', ')"
-              throw "One or more scripts failed syntax validation."
-          } else {
-              Write-Host "All scripts passed syntax validation."
-          }
+           try {
+              ./scripts/*Scripts.ps1 -SyntaxCheck
+              Write-Host "Syntax check passed"
+            } catch {
+                Write-Host "Syntax check failed: $_ "
+                exit 1 }
       
       # Step 3: Upload artifacts (optional)
       - name: Upload output
