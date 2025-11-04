@@ -91,6 +91,8 @@ choco install terraform -y
 
 ```
 
+[Click here for workflow diagram](https://github.com/Tanisha-221/System-Administration-Powershell/blob/main/image.png)
+
 ## Script Reference Paths 
 1. [VM Creation Script](https://github.com/Tanisha-221/System-Administration-Powershell/blob/main/scripts/1-Vm-Script.ps1)
 2. [Store Credentials using SecretManagement](https://github.com/Tanisha-221/System-Administration-Powershell/blob/main/scripts/3-SecretScript.ps1)
