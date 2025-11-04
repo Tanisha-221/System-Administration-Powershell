@@ -92,10 +92,10 @@ choco install terraform -y
 ```
 
 ## Script Reference Paths 
-1. [VM Creation Script](https://github.com/Tanisha-221/System-Administration-Powershell/blob/main/Vm-Script)
-2. [Store Credentials using SecretManagement]()
-3. [Monitoring and report Collection Script]()
-4. [Connection Script]()
+1. [VM Creation Script](https://github.com/Tanisha-221/System-Administration-Powershell/blob/main/scripts/1-Vm-Script.ps1)
+2. [Store Credentials using SecretManagement](https://github.com/Tanisha-221/System-Administration-Powershell/blob/main/scripts/3-SecretScript.ps1)
+3. [Monitoring and report Collection Script](https://github.com/Tanisha-221/System-Administration-Powershell/blob/main/scripts/4-Monitoring-Script.ps1)
+4. [Connection Script](https://github.com/Tanisha-221/System-Administration-Powershell/tree/main/scripts)
 
 ## Laerning Objective:
 
