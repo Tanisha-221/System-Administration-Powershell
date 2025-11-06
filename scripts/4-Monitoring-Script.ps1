@@ -21,4 +21,4 @@ Copy-Item -FromSession $session -Path $remoteZipFile -Destination "C:\" -Recurse
 # Clean up session
 Remove-PSSession $session
 
-Write-Host "File copied successfully from VM1 to monitoring VM.
+Write-Host "File copied successfully from VM1 to monitoring VM."

@@ -1,3 +1,4 @@
+$ErrorActionPreference = 'Stop'
 $startTime = Get-Date
 Write-Host "Script started at $startTime"
 
@@ -8,35 +9,80 @@ if (-not (Test-Path $folder)) {
     Write-Host "Creating folder"
     New-Item -Path $folder -ItemType Directory | Out-Null
 } else {
-    Write-Host "Folder exists"
+    Write-Error "Folder exists"
 }
 
 # ------ 1. Whoami -----------------
-whoami | Out-File -Filepath "$folder\whoami.txt" -Append
+try{
+    whoami | Out-File -Filepath "$folder\whoami.txt"
+    Write-Output "Whoami command executed successfully"
+}catch{
+    Write-Error "Failed to execute whoami command"
+}
 
 # ------ 2. hostname --------------
-hostname | Out-File -FilePath "$folder\hostname.txt" -Append
+try{
+    hostname | Out-File -FilePath "$folder\hostname.txt" -Append
+    Write-Output "Hostname command executed successfully"
+}catch{
+    Write-Error "Failed to execute hostname command"
+}
 
 # ------ 3. Computer Info-----------
-Get-ComputerInfo |Out-File -FilePath "$folder\ComputerInfo.txt" -Append
+try{
+    Get-ComputerInfo |Out-File -FilePath "$folder\ComputerInfo.txt" -Append
+    Write-Output "Computer Info command executed successfully"
+}catch{
+    Write-Error "Failed to execute Computer Info command"
+}
 
 # ------ 4. IP Configuration ----------
-ipconfig | Out-File -FilePath "$folder\IpConfig.txt" -Append
+try{
+    ipconfig | Out-File -FilePath "$folder\IpConfig.txt" -Append
+    Write-Output "IP Configuration command executed successfully"
+}catch{
+    Write-Error "Failed to execute IP Configuration command"
+}
 
 # ------ 5. List all services -----------
-Get-Service | Out-File -FilePath "$folder\Services.txt" -Append
+try{
+    Get-Service | Out-File -FilePath "$folder\Services.txt" -Append
+    Write-Output "List all services command executed successfully"
+}catch{
+    Write-Error "Failed to execute List all services command"
+}
 
 # ------ 6. List running services ------
-Get-Service | Where-Object {$_.Status -eq "Running"} | Out-File -FilePath "$folder\RunningServices.txt" -Append
+try{
+    Get-Service | Where-Object {$_.Status -eq "Running"} | Out-File -FilePath "$folder\RunningServices.txt" -Append
+    Write-Output "List running services command executed successfully"
+}catch{
+    Write-Error "Failed to execute List running services command"
+}
 
 # ------ 7. System Info ------------
-SystemInfo | Out-File -FilePath "$folder/SystemInfo.txt" -Append
+try{
+    SystemInfo | Out-File -FilePath "$folder/SystemInfo.txt" -Append
+    Write-Output "System Info command executed successfully"
+}catch{
+    Write-Error "Failed to execute System Info command"
+}
 
 # ------ 8. Processes ------------
-Get-Process | Out-File -FilePath "$folder\Processes.txt" -Append
+try{
+    Get-Process | Out-File -FilePath "$folder\Processes.txt" -Append
+    Write-Output "Processes command executed successfully"
+}catch{
+    Write-Error "Failed to execute Processes command"
+}
 
 # ------ 9. Disk Information ---------
-Get-Disk | Out-File -FilePath "$folder\DiskInfo.txt" -Append
+try{
+    Get-Disk | Out-File -FilePath "$folder\DiskInfo.txt" -Append
+    Write-Output "Disk Information command executed successfully"
+}catch{
+    Write-Error "Failed to execute Disk Information command"
+}
 
 # ------10. Escalation if service fails to start on 3 cosecutive checks -------
 $failedServices = @()
@@ -55,7 +101,7 @@ $failedServices = @()
                     $serviceStarted = $true
                 }
                 catch {
-                    Write-Output "Failed to start service '$($service.Name)' on attempt $($retryCount + 1)."
+                    Write-Error "Failed to start service '$($service.Name)' on attempt $($retryCount + 1)."
                     $retryCount++
                     Start-Sleep -Seconds 5
                 }
@@ -75,7 +121,7 @@ $failedServices = @()
             Write-Output "All services started successfully or already running."
         }
 
-# -------- 11fol. Failed login ----------
+# -------- 11 Failed login ----------
 $securityFile = "$folder\FailedSecurityEvents.txt"
 
 try {
@@ -87,30 +133,72 @@ try {
     Write-Host " Failed security events saved to $securityFile"
 }
 catch {
-    Write-Host " Failed to retrieve security events: $_"
+    Write-Error " Failed to retrieve security events: $_"
 }
 
 # -------- Zip the folder -------------
 $hostName = $env:COMPUTERNAME
-$zipFile = "C:\AllReports_${hostName}_$(Get-Date -Format 'yyyyMMdd_HHmm').zip"
+$archiveDateFolder = "C:\Archive\" + (Get-Date -Format 'yyyy-MM-dd')
 
-# Check if folder has any files before compressing
-if (Test-Path $folder) {
-    Write-Output "Checking if the file exists"
-    $items = Get-ChildItem -Path $folder -Recurse -File -Exclude *.zip
-    if ($items.Count -gt 0) {
-        Compress-Archive -Path $folder\* -DestinationPath $zipFile -Force
-        Write-Host "All reports archived at $zipFile"
-    }else{
-        Write-Host "No files found in $folder to archive."
+# Ensure archive date folder exists
+try {
+    if (-not (Test-Path $archiveDateFolder)) {
+        New-Item -Path $archiveDateFolder -ItemType Directory -Force | Out-Null
+        Write-Host "Created archive folder for today: $archiveDateFolder"
+    } else {
+        Write-Host "Archive folder for today already exists: $archiveDateFolder"
     }
-}else{
-    Write-Host "Folder $folder does not exist — nothing to archive."
+}
+catch {
+    Write-Error "Failed to create or verify archive folder: $_"
 }
 
+# Move any existing zip to archive before creating new zip
+$existingZipFolder = "C:\Assignment_1"
+$existingZip = Get-ChildItem -Path $existingZipFolder -Filter "*.zip" -Recurse -ErrorAction SilentlyContinue
+
+if ($existingZip) {
+    Write-Host "Existing zip file found. Moving it to archive..."
+    try {
+        $existingZip | Move-Item -Destination $archiveDateFolder -Force
+        Write-Host "Moved zip file to archive folder."
+    } catch {
+        Write-Error "Failed to move existing zip file: $_"
+    }
+}
+
+# Create ZIP file path
+$zipBaseName = "AllReports_${hostName}"
+$timestamp = Get-Date -Format 'yyyyMMdd_HHmm'
+$zipFile = Join-Path $archiveDateFolder "${zipBaseName}_${timestamp}.zip"
+
+# -------- Compress Folder --------
+try {
+    if (Test-Path $folder) {
+        Write-Output "Checking if the folder has files..."
+        $items = Get-ChildItem -Path $folder -Recurse -File -Exclude *.zip
+
+        if ($items.Count -gt 0) {
+            Compress-Archive -Path "$folder\*" -DestinationPath $zipFile -Force
+            Write-Host "All reports archived at $zipFile"
+        } else {
+            Write-Host "No files found in $folder to archive."
+        }
+    } else {
+        Write-Host "Folder $folder does not exist — nothing to archive."
+    }
+}
+catch {
+    Write-Error "Error during zipping or archiving: $_"
+}
 # --------- Script End Time ------------
-$endTime = Get-Date
-Write-Host "Script completed at $endTime"
+try{
+    (Get-Date) | Out-File -FilePath "$folder\ScriptEndTime.txt" -Append
+    Write-Output "Script End Time recorded successfully"
+}catch{
+    Write-Output "Failed to record Script End Time"
+}
+Write-Host "Script completed at $(Get-Date)"
 
 # ---------- Clean Up --------------
 Remove-Item -Path $folder -Recurse -Force
