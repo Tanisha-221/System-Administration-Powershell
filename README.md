@@ -75,31 +75,17 @@ choco install terraform -y
 ```
 
 ## Workflow Diagram 
-```
-+------------------------+        +------------------------+
-|    Remote VM (VM1)     |        |  Monitoring VM (VM2)   |
-|------------------------|        |------------------------|
-| 1. Collect system info |        |                        |
-| 2. Generate report txt |        |                        |
-| 3. Compress to ZIP     |        |                        |
-| 4. Store ZIP locally   |        |                        |
-+------------------------+        |                        |
-          | Copy ZIP via PSSession |                        |
-          +----------------------->|  Receive ZIP file      |
-                                     |  Store locally         |
-                                     +------------------------+
 
-```
+[Click here for architectural diagram](https://github.com/Tanisha-221/System-Administration-Powershell/blob/main/Workflow-Diagram.png)  
+**Note** : In this project Monitoring VM copies the Zip folder, so it is single directional if you wnt bidirectional (both server copies folder) then youll have to execute the scripts of secret.ps1 and monitoring-script.ps1 on both the server to make it bidirectional. 
 
-[Click here for workflow diagram](https://github.com/Tanisha-221/System-Administration-Powershell/blob/main/image.png)
-
-## Script Reference Paths 
+## Script Reference Paths https
 1. [VM Creation Script](https://github.com/Tanisha-221/System-Administration-Powershell/blob/main/scripts/1-Vm-Script.ps1)
 2. [Store Credentials using SecretManagement](https://github.com/Tanisha-221/System-Administration-Powershell/blob/main/scripts/3-SecretScript.ps1)
 3. [Monitoring and report Collection Script](https://github.com/Tanisha-221/System-Administration-Powershell/blob/main/scripts/4-Monitoring-Script.ps1)
 4. [Connection Script](https://github.com/Tanisha-221/System-Administration-Powershell/tree/main/scripts)
 
-## Laerning Objective:
+## Points to keep in mind :
 
 By working on this project, you will learn:
 - **PowerShell Remoting & WinRM:** Configuring remote sessions and transferring files securely.
@@ -112,10 +98,27 @@ By working on this project, you will learn:
 
 - **Error Handling & Escalation Logic:** Implementing retry logic for failed services.
 
-## Lessons Learned
+## Summary 
 
 - Always validate and test remote PowerShell sessions before automation.
 - Using SecretManagement avoids hardcoding sensitive credentials in scripts.
 - Dynamic ZIP file names simplify automation and prevent overwriting reports.
 - Proper error handling is critical when dealing with multiple services.
 - Task Scheduler requires elevated privileges to execute scripts that interact with system settings.
+
+## Future Scope/Expamsion of the project 
+
+1. **Splunk Integration - Data Centralization and visualization**  
+    - **Goal** : Send collected system metrics, logs, and reports directly to Splunk instead of (or in addition to) saving them as ZIPs.  
+2. **Alerting & Automated Remediation**
+    - Define thresholds (e.g., Disk usage > 90%, CPU > 85%, Service stopped).
+       * PowerShell script triggers:
+       * Splunk alert → Email / Teams / Slack notification
+       * or an auto-remediation script (restart service, clear logs, etc.)
+
+3. **Extend Data Collection Scope**
+  * Hardware metrics: Temperature, fan speed, battery (for laptops)
+  * Application logs: IIS, SQL Server, custom application events
+  * Network metrics: Ping latency, bandwidth, open ports
+  * Security info: Audit logs, login failures, privilege changes
+  * All of these can feed into Splunk for correlation and root cause analysis.
